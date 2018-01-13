@@ -35,3 +35,10 @@ d:\documents\users\kremians\Documents\בינה\Game\Game\bin\Debug\ClassLibrary1
 d:\documents\users\kremians\Documents\בינה\Game\Game\obj\Debug\Game.csprojResolveAssemblyReference.cache
 d:\documents\users\kremians\Documents\בינה\Game\Game\obj\Debug\Game.exe
 d:\documents\users\kremians\Documents\בינה\Game\Game\obj\Debug\Game.pdb
+d:\documents\users\kremians\Documents\GitHub\Reversi-AI\Game\bin\Debug\Game.exe.config
+d:\documents\users\kremians\Documents\GitHub\Reversi-AI\Game\bin\Debug\Game.exe
+d:\documents\users\kremians\Documents\GitHub\Reversi-AI\Game\bin\Debug\Game.pdb
+d:\documents\users\kremians\Documents\GitHub\Reversi-AI\Game\bin\Debug\ClassLibrary1.dll
+d:\documents\users\kremians\Documents\GitHub\Reversi-AI\Game\obj\Debug\Game.csprojResolveAssemblyReference.cache
+d:\documents\users\kremians\Documents\GitHub\Reversi-AI\Game\obj\Debug\Game.exe
+d:\documents\users\kremians\Documents\GitHub\Reversi-AI\Game\obj\Debug\Game.pdb

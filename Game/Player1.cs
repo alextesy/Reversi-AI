@@ -26,10 +26,12 @@ namespace Game
             char        playerChar          // 1 or 2
         )
         {
-            Tuple<int, int> toReturn = getBestMove(board, playerChar, 5);
+           // Stopwatch sw = new Stopwatch();
+           // sw.Start();
+            Tuple<int, int> toReturn = getBestMove(board, playerChar, 2, sw, timesup);
             return toReturn;
         }
-        private Tuple<int,int> getBestMove(Board board,char playerCh,int depth)
+        private Tuple<int,int> getBestMove(Board board,char playerCh,int depth, Stopwatch sw, TimeSpan ts)
         {
             double record = int.MinValue;
             Tuple<int,int> bestMove = null;
@@ -40,15 +42,18 @@ namespace Game
             }
             else {
                 List<Tuple<int, int>> possibleMoves = board.getLegalMoves(playerCh);
-            		if (possibleMoves.Capacity>0) {
-            			foreach (Tuple<int,int> nextPossibleMove in possibleMoves) {
+            		if (possibleMoves.Count>0) {
+//                        for(int i = 0; i < possibleMoves.Count && sw.Elapsed.Milliseconds <= ts.Ticks*0.75; i++)
+                        foreach(Tuple<int, int> move in possibleMoves)
+                        {
                             subBoard = new Board(board);
-            			    subBoard.fillPlayerMove(playerCh,nextPossibleMove.Item1,nextPossibleMove.Item2);
+            			    subBoard.fillPlayerMove(playerCh, move.Item1, move.Item2);
             			    double result = valueMin(subBoard, Board.otherPlayer(playerCh), depth - 1);
-          				    if (result > record) {
+          				    if (result > record)
+                            {
             			    	record = result;
-                                bestMove = nextPossibleMove;
-        				        }
+                                bestMove = move;
+        				    }
          			    }
             		}
             	}
@@ -67,6 +72,8 @@ namespace Game
                 Board tempBoard = new Board(board);
                 tempBoard.fillPlayerMove(playerCh, move.Item1, move.Item2);
                 char nextPlayer = Board.otherPlayer(playerCh);
+                if (board.getLegalMoves(nextPlayer).Count == 0)
+                    continue;
                 double value = valueMin(board, nextPlayer, depth - 1);
                 if (value > best)
                     best = value;
@@ -86,13 +93,12 @@ namespace Game
                 Board tempBoard = new Board(board);
                 tempBoard.fillPlayerMove(playerCh,move.Item1,move.Item2);
                 char nextPlayer = Board.otherPlayer(playerCh);
+                if (board.getLegalMoves(nextPlayer).Count == 0)
+                    continue;
                 double value = valueMax(board, nextPlayer, depth - 1);
                 if (value < best)
                     best = value;
             }
-
-
-
             return best;
         }
         private double getScore(Board board, char PlayerCh)
