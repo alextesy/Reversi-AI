@@ -33,7 +33,7 @@ namespace Game
             Tuple<int, int> toReturn = getBestMove(board, playerChar, timesup);
             sw.Stop();
             TimeSpan ts = sw.Elapsed;
-            Console.WriteLine(ts.Milliseconds);
+            //Console.WriteLine(ts.Milliseconds);
   
             return toReturn;
         }
@@ -53,20 +53,58 @@ namespace Game
             else
             {
                 List<Tuple<int, int>> possibleMoves = board.getLegalMoves(playerCh);
-                int depth = 2;
-                if (ts.Ticks == 80 && board._n < 9)
-                    depth = 3;
-                if (ts.Ticks == 50 && board._n < 9)
-                    depth = 3;                
+                int depth = 1;
+
+                if (ts.Ticks == 50)
+                {
+                    if (board._n < 7)
+                        depth = 4;
+                    else if (board._n < 9)
+                        depth = 3;
+                    else if (board._n > 9 && board._n < 15)
+                        depth = 2;
+                    else
+                        depth = 1;
+                }
+                else if (ts.Ticks == 80|| ts.Ticks == 100)
+                {
+                    if (board._n < 7)
+                        depth = 4;
+                    else if (board._n < 9)
+                        depth = 3;
+                    else if(board._n>9&&board._n < 15)
+                        depth = 2;
+                    else
+                        depth = 1;
+                    
+                }
+                else if(ts.Ticks == 150|| ts.Ticks == 200)
+                {
+                    if (board._n < 9)
+                        depth = 4;
+                    else if (board._n < 11)
+                        depth = 3;
+                    else if (board._n < 19)
+                        depth = 2;
+                    else
+                        depth = 1;
+
+                }
+             
+               
+
+                
+                              
                 for(int i = 0; i < possibleMoves.Count; i++)
                 {
-
+                    double gamma = 0.8;
+                    if (depth == 1)
+                        gamma = 0.5;
                     subBoard = new Board(board);
             		subBoard.fillPlayerMove(playerCh, possibleMoves[i].Item1, possibleMoves[i].Item2);
                     double huristic = distHeuristic(board, possibleMoves[i]);
                     double score = valueMin(subBoard, Board.otherPlayer(playerCh), depth - 1, sumScore, alpha,beta) / sumScore;
-                    double result = 0.8 * score + 0.2 * huristic;
-                    Console.WriteLine("score " + score);
+                    double result = gamma * score +(1- gamma) * huristic;
                     if (result > record)
                     {
             			record = result;
