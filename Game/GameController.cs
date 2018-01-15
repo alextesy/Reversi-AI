@@ -37,7 +37,10 @@ namespace Game
         {
             Tuple<int, int> currentScore;
             int player1score = 0;
+            int total1 = 0;
+            int total2 = 0;
             int player2score = 0;
+            List<Tuple<int, int>> results = new List<Tuple<int, int>>();
             for(int game = 0; game < _numberOfGames; game++)
             {
                 Board board1 = new Board(_boardSize);
@@ -45,12 +48,23 @@ namespace Game
                 board2.switchBoard();
 
                 currentScore = RunOneGame(board1, '1');                                             // player1 starts
-                player1score += currentScore.Item1;
-                player2score += currentScore.Item2;
+                player1score = currentScore.Item1;
+                player2score = currentScore.Item2;
+                results.Add(new Tuple<int, int>(player1score, player2score));
+                total1 += currentScore.Item1;
+                total2 += currentScore.Item2;
 
                 currentScore = RunOneGame(board2, '2');                                             // player2 starts
-                player1score += currentScore.Item1;
-                player2score += currentScore.Item2;
+                player1score= currentScore.Item1;
+                player2score= currentScore.Item2;
+                total1 += currentScore.Item1;
+                total2 += currentScore.Item2;
+
+                results.Add(new Tuple<int, int>(player1score, player2score));
+
+
+
+
             }
             return new Tuple<int, int>(player1score, player2score);
         }
@@ -71,7 +85,7 @@ namespace Game
                     board.printTheBoardCosts();
                     printGameResults(board.gameScore());
                     Console.WriteLine("\nPlayer " + currentPlayerChar + " turn .. ");
-                    Console.ReadLine();
+                    //Console.ReadLine();
                 }
 
                 if(board.getLegalMoves(currentPlayerChar).Count == 0)
@@ -79,7 +93,7 @@ namespace Game
                     if (_printResults)
                     {
                         Console.WriteLine("Player " + currentPlayerChar + " got no legal moves .. ");
-                        Console.ReadLine();
+                        //Console.ReadLine();
                         Console.Clear();
 
                     }
@@ -95,7 +109,7 @@ namespace Game
                 if (_printResults)
                 {
                     Console.WriteLine("Selected action: [ " + selectedAction.Item1 + " , " + selectedAction.Item2 + " ]");
-                    Console.ReadLine();
+                    //Console.ReadLine();
                     Console.Clear();
 
                 }
@@ -105,7 +119,8 @@ namespace Game
                     timespan.TotalMilliseconds > turnTime ||                                                                                // check timeout
                     selectedAction == null                ||
                     !board.isLegalMove(currentPlayerChar, selectedAction.Item1, selectedAction.Item2)                                       // check move legality
-                )          
+                )
+                    
                         return board.gameScoreStopBeforeFinishing(Board.otherPlayer(currentPlayerChar));
                 else                                                                                                                        // no timeout
                 {

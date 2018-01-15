@@ -26,93 +26,160 @@ namespace Game
             char        playerChar          // 1 or 2
         )
         {
-           // Stopwatch sw = new Stopwatch();
-           // sw.Start();
-            Tuple<int, int> toReturn = getBestMove(board, playerChar, 2, sw, timesup);
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+      
+
+            Tuple<int, int> toReturn = getBestMove(board, playerChar, timesup);
+            sw.Stop();
+            TimeSpan ts = sw.Elapsed;
+            Console.WriteLine(ts.Milliseconds);
+  
             return toReturn;
         }
-        private Tuple<int,int> getBestMove(Board board,char playerCh,int depth, Stopwatch sw, TimeSpan ts)
+        private Tuple<int,int> getBestMove(Board board,char playerCh, TimeSpan ts)
         {
+            double alpha = Double.MinValue;
+            double beta = Double.MaxValue;
+            double sumScore = (Math.Pow(board._n, 2) * (Math.Pow(board._n, 2) - 1)) / 2;
+
             double record = int.MinValue;
             Tuple<int,int> bestMove = null;
             Board subBoard = new Board(board);
-            if (depth <= 0 || board.isTheGameEnded())
+            if (board.isTheGameEnded())
             {
-                record = getScore(board, playerCh);
+                record = board.gameScore().Item1;
             }
-            else {
+            else
+            {
                 List<Tuple<int, int>> possibleMoves = board.getLegalMoves(playerCh);
-            		if (possibleMoves.Count>0) {
-//                        for(int i = 0; i < possibleMoves.Count && sw.Elapsed.Milliseconds <= ts.Ticks*0.75; i++)
-                        foreach(Tuple<int, int> move in possibleMoves)
-                        {
-                            subBoard = new Board(board);
-            			    subBoard.fillPlayerMove(playerCh, move.Item1, move.Item2);
-            			    double result = valueMin(subBoard, Board.otherPlayer(playerCh), depth - 1);
-          				    if (result > record)
-                            {
-            			    	record = result;
-                                bestMove = move;
-        				    }
-         			    }
-            		}
-            	}
+                int depth = 2;
+                if (ts.Ticks == 80 && board._n < 9)
+                    depth = 3;
+                if (ts.Ticks == 50 && board._n < 9)
+                    depth = 3;                
+                for(int i = 0; i < possibleMoves.Count; i++)
+                {
+
+                    subBoard = new Board(board);
+            		subBoard.fillPlayerMove(playerCh, possibleMoves[i].Item1, possibleMoves[i].Item2);
+                    double huristic = distHeuristic(board, possibleMoves[i]);
+                    double score = valueMin(subBoard, Board.otherPlayer(playerCh), depth - 1, sumScore, alpha,beta) / sumScore;
+                    double result = 0.8 * score + 0.2 * huristic;
+                    Console.WriteLine("score " + score);
+                    if (result > record)
+                    {
+            			record = result;
+                        bestMove = possibleMoves[i];
+        			}
+         		}
+            }
+            //Console.WriteLine("record " + record);
             return bestMove;
         }
-        private double valueMax(Board board, char playerCh, int depth)
+
+
+
+
+
+
+
+
+
+
+
+
+        private double valueMax(Board board, char playerCh, int depth,double sumScore,double alpha,double beta)
         {
             if (depth <= 0 || board.isTheGameEnded())
             {
-                return getScore(board, playerCh);
+                return board.gameScore().Item1 / sumScore;
             }
-            double best = double.MinValue;
+            double best = 0;
             List<Tuple<int, int>> possibleMoves = board.getLegalMoves(playerCh);
-            foreach (Tuple<int, int> move in possibleMoves)
+            if (possibleMoves != null)
             {
-                Board tempBoard = new Board(board);
-                tempBoard.fillPlayerMove(playerCh, move.Item1, move.Item2);
-                char nextPlayer = Board.otherPlayer(playerCh);
-                if (board.getLegalMoves(nextPlayer).Count == 0)
-                    continue;
-                double value = valueMin(board, nextPlayer, depth - 1);
-                if (value > best)
-                    best = value;
-            }
-            return best;
-        }
-        private double valueMin(Board board, char playerCh,int depth)
-        {
-            if (depth <= 0 || board.isTheGameEnded())
-            {
-                return getScore(board, playerCh);
-            }
-            double best = double.MaxValue;
-            List<Tuple<int, int>> possibleMoves = board.getLegalMoves(playerCh);
-            foreach(Tuple<int,int> move in possibleMoves)
-            {
-                Board tempBoard = new Board(board);
-                tempBoard.fillPlayerMove(playerCh,move.Item1,move.Item2);
-                char nextPlayer = Board.otherPlayer(playerCh);
-                if (board.getLegalMoves(nextPlayer).Count == 0)
-                    continue;
-                double value = valueMax(board, nextPlayer, depth - 1);
-                if (value < best)
-                    best = value;
-            }
-            return best;
-        }
-        private double getScore(Board board, char PlayerCh)
-        {
-            double score = 0;
-            for(int i = 0; i < board._n; i++)
-            {
-                for(int j = 0; j < board._n; j++)
+                for (int i = 0; i < possibleMoves.Count; i++)
                 {
-                    if (board._boardGame[i, j] == PlayerCh)
-                        score += board._boardCosts[i, j];
+                    Board tempBoard = new Board(board);
+                    tempBoard.fillPlayerMove(playerCh, possibleMoves[i].Item1, possibleMoves[i].Item2);
+                    char nextPlayer = Board.otherPlayer(playerCh);
+                    if (tempBoard.getLegalMoves(nextPlayer).Count == 0)
+                        continue;
+                    double value = valueMin(tempBoard, nextPlayer, depth - 1, sumScore, alpha, beta);
+                    if (value > best)
+                    {
+                        best = value;
+                        if (value > alpha)
+                            alpha = value;
+                    }
+                    if (alpha >= beta)
+                        return best;
                 }
             }
-            return score;
+            else
+                best= valueMin(board, Board.otherPlayer(playerCh), depth - 1, sumScore, alpha, beta);//board.gameScore().Item1 / sumScore;
+            return best;
         }
+        private double valueMin(Board board, char playerCh, int depth, double sumScore, double alpha, double beta)
+        {
+            if (depth <= 0 || board.isTheGameEnded())
+            {
+                return board.gameScore().Item1 / sumScore;
+            }
+            double best = 1;
+            List<Tuple<int, int>> possibleMoves = board.getLegalMoves(playerCh);
+            if (possibleMoves != null)
+            {
+                for (int i = 0; i < possibleMoves.Count; i++)
+                {
+
+                    Board tempBoard = new Board(board);
+                    tempBoard.fillPlayerMove(playerCh, possibleMoves[i].Item1, possibleMoves[i].Item2);
+                    char nextPlayer = Board.otherPlayer(playerCh);
+                    if (board.getLegalMoves(nextPlayer).Count == 0)
+                        continue;
+                    double value = valueMax(tempBoard, nextPlayer, depth - 1, sumScore, alpha, beta);
+                   // Console.WriteLine("value " + value);
+                    if (value < best)
+                    {
+                        best = value;
+                        if (value < beta)
+                            beta = value;
+                    }
+                    if (alpha >= beta)
+                        return best;
+                }
+            }
+            else
+            {
+                best = valueMax(board, Board.otherPlayer(playerCh), depth - 1, sumScore, alpha, beta);
+            }
+            return best;
+        }
+        private double distHeuristic(Board board, Tuple<int,int> move) //Region 5>Region 3 > Region 1>Region 2 > Region4
+        {
+            if (move.Item1 > 1 && move.Item1 < board._n - 2 && move.Item2 > 1 && move.Item2 < board._n - 2) // Region1
+            {
+                return 0.6;
+            }
+            if ((move.Item1==0 && move.Item2>1 && move.Item2 < board._n-2)|| (move.Item1 == board._n-1 && move.Item2 > 1 && move.Item2 < board._n - 2)|| (move.Item2 == 0 && move.Item1 > 1 && move.Item1 < board._n - 2) || (move.Item2 == board._n-1 && move.Item1 > 1 && move.Item1 < board._n - 2)) // Region 3 
+            {
+                return 0.8;
+            }
+            if ((move.Item1 == 1 && move.Item2 > 1 && move.Item2 < board._n - 2) || (move.Item1 == board._n - 2 && move.Item2 > 1 && move.Item2 < board._n - 2) || (move.Item2 == 1 && move.Item1 > 1 && move.Item1 < board._n - 2) || (move.Item2 == board._n - 2 && move.Item1 > 1 && move.Item1 < board._n - 2))//Region 2 
+            {
+                return 0.4;
+            }
+            if ((board._n - 1 == move.Item1 && board._n - 1 == move.Item2) || (0 == move.Item1 && 0 == move.Item2) || (board._n - 1 == move.Item1 && 0 == move.Item2) || (0 == move.Item1 && board._n - 1 == move.Item2))//Region 5
+            {
+                return 1.0;
+            }
+            return 0.2; // Region 4
+            
+
+        }
+
+
     }
 }
